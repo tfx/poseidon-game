@@ -120,6 +120,8 @@ window.addEventListener('mousemove', function(e) {
     mouse.y = e.clientY - canvas.offsetTop;
 });
 
+
+// Update function
 function update(mod) {
     if (mouse.down && Date.now() - pirate.projectileTimer > pirate.shootDelay) {
         var trajectory = new Trajectory(pirate.x + pirate.width / 2, pirate.y + 15, mouse.x, mouse.y);
@@ -153,6 +155,8 @@ function update(mod) {
     }
 }
 
+
+// Render
 function render() {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -164,6 +168,8 @@ function render() {
     }
 }
 
+
+// Run
 function run() {
     update((Date.now() - time) / 1000);
     render();
