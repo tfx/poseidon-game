@@ -1,19 +1,10 @@
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
+var score = Math.random();
 
 canvas.width = 1536;
 canvas.height = 768;
 
-
-
-var Square = {
-    x: 600,
-    y: 600,
-    width: 50,
-    height: 50,
-    speed: 200,
-    color: '#c00'
-};
 
 // Class sea background
 function Background (image, width, height) {
@@ -142,7 +133,47 @@ function drawEnemy (enemy)
     );
 }
 
+/*
+function SquareObj (x, y, width, height, speed, color)
+{
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+    this.color = color;
+}
+*/
 
+// Trial
+function SquareObj (x, y, width, height, speed, color, trajectory)
+{
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+    this.color = color;
+    this.trajectory = trajectory;
+} //
+
+function drawSqr (square)
+{
+    ctx.fillStyle = square.color;
+    ctx.fillRect(square.x, square.y, square.width, square.height);
+}
+
+// Trial
+var sqrArr = {};
+function updateSquare(mod) {
+    for (var key in sqrArr) {
+        sqrArr[key].x += sqrArr[key].trajectory.x * sqrArr[key].speed * mod;
+        sqrArr[key].y += sqrArr[key].trajectory.y * sqrArr[key].speed * mod;
+        if (sqrArr[key].x > canvas.width || sqrArr[key].x < 0 || sqrArr[key].y > canvas.height || sqrArr[key].y < 0) {
+            sqrArr.splice(key, 1);
+        }
+    }
+} //
 
 // Create an object
 var background = new Background('water.png', 64, 64);
@@ -150,6 +181,7 @@ var pirate = new ShipSprite('ship-sprite.png', 186, 186,200,400, 400, 0);
 pirate.projectileTimer = Date.now();
 pirate.shootDelay = 200;
 var projectiles = [];
+var Square = new SquareObj((Math.random() * canvas.width) + 100, (Math.random() * canvas.height) + 100, 50, 50, 200, '#c00', null);
 
 
 // Handling user input
@@ -189,6 +221,15 @@ function update(mod) {
             '#0f0',
             1000 );
         projectiles.push(projectile);
+
+        /*
+        var sX = Math.random() * canvas.width + 100;
+        var sY = Math.random() * canvas.height + 100;
+        var street = new Trajectory(sX ,sY , pirate.x, pirate.y);
+        var sqrObj = new SquareObj(sX, sY, 50, 50, 200, '#c00', street);
+        sqrArr.push(sqrObj);
+        */
+
         pirate.projectileTimer = Date.now();
     }
     updateProjectiles(mod);
@@ -211,7 +252,7 @@ function update(mod) {
         pirate.y += pirate.speed * mod;
     }
 
-
+    // Ship touches enemy?
     if (
         pirate.x < Square.x + Square.width &&
             pirate.x + pirate.width > Square.x &&
@@ -219,8 +260,8 @@ function update(mod) {
             pirate.y + pirate.height > Square.y
         )
     {
-        Square.x = Math.random() * canvas.width;
-        Square.y = Math.random() * canvas.height;
+        Square.x = Math.random() * canvas.width + 100;
+        Square.y = Math.random() * canvas.height + 100;
     }
 
 }
@@ -237,8 +278,16 @@ function render() {
         drawSquare(projectiles[key].x, projectiles[key].y, projectiles[key].size, projectiles[key].color);
     }
 
-    ctx.fillStyle = Square.color;
-    ctx.fillRect(Square.x, Square.y, Square.width, Square.height);
+    drawSqr(Square);
+    drawSqr(Square);
+
+    drawSqr(Square);
+    drawSqr(Square);
+    drawSqr(Square);
+    drawSqr(Square);
+    drawSqr(Square);
+    drawSqr(Square);
+
 }
 
 
