@@ -217,6 +217,7 @@ function render() {
       drawSquare(projectiles[key].x, projectiles[key].y, projectiles[key].size, projectiles[key].color);
    }
 
+
 	if (Enemy.loaded == true)
 		DrawSprite(Enemy);
 	if (Coin.loaded == true)
