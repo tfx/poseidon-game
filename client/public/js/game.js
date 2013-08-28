@@ -45,8 +45,8 @@ function init() {
 
 
    //localPlayer = new Player(startX, startY);
-   socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});
-
+   //socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});
+   socket = io.connect("http://localhost", {port: 8000});
    // Initialise remote players array
    remotePlayers = [];
 
@@ -81,6 +81,15 @@ var setEventHandlers = function() {
    socket.on("remove player", onRemovePlayer);
 
    socket.on("new enemy", onNewEnemy);
+
+    socket.on('chat', function (data) {
+           
+            // print data (jquery thing)
+            $("#txtAreaDisplay").val($("#txtAreaDisplay").val()+"\r\n" + data.msgr + ': ' + data.msg);
+             // we log this event for fun :D
+             $("p#log").html('got message: ' + data.msg);
+
+          });
 }
 
 // Keyboard key down
@@ -373,3 +382,119 @@ function enemyById(id) {
    }
    return false;
 }
+
+/*
+*
+* CHAT APPLICATION (handle physically buttons and events)
+*
+*/
+// Chat application Variable Declare
+var btnEnterText = document.getElementById("btnEnterText");
+var txtTextInput = document.getElementById("txtTextArea");
+var txtTextDisplay = document.getElementById("txtAreaDisplay");
+var textInputPanel = document.getElementById("txtTextInput");
+var isWritting = 0;
+var logs = document.getElementById("Logs")
+var btnClose = document.getElementById("btnCloseLog");
+var btnClear = document.getElementById("btnClearLog");
+textInputPanel.style.display = "none";
+document.onkeydown = function() {
+   if (event.keyCode == 13) {  
+    addText();
+ }
+ if(event.keyCode == 192){
+   closeLog();
+}
+}
+
+//Enter button event handler
+btnEnterText.addEventListener("click",function(){ 
+   textInputPanel.style.display = "none";
+
+}, false);
+
+//Close Log Button
+btnClose.addEventListener("click", function(){
+   if (logs.style.display=="block"){
+      logs.style.display="none" 
+   }else{
+      logs.style.display="block" 
+   }
+
+},false);
+
+//clear log button
+btnClear.addEventListener("click", function(){
+   txtTextDisplay.value="";
+}, false);
+
+function closeLog(){
+   if (logs.style.display=="block"){
+      logs.style.display="none" 
+   }else{
+      logs.style.display="block" 
+   }
+}
+
+function addText(){
+
+   if (textInputPanel.style.display=="block"){
+      txtTextInput.focus();
+      var text=txtTextInput.value;
+      if(text == "cmd clear"){
+         txtTextDisplay.value="";
+      }else if(text == "cmd close"){
+         closeLog();
+      }else if(text == "cmd show"){
+         closeLog();
+      }else if(text.length!=0){
+         sendMessageToServer(); 
+      }
+      isWritting = 0;
+      textInputPanel.style.display="none"
+   }
+   else{
+      isWritting = 0;
+      isWritting = 1;
+      textInputPanel.style.display="block"     
+      txtTextInput.value="";
+   }
+}
+
+ $(document).ready(function(){
+
+            var logs = $("#txtAreaDisplay");
+            var input = $("#txtTextArea");
+            var btnSend =  $("button:#btnEnterText");
+            btnSend.click(function(){      
+               //alert("xxx");
+               // send message on inputbox to server
+               socket.emit('chat', input.val() );
+               
+               logs.val(logs.val()+"\r\n" + name + ': ' + input.val());
+               
+               // then we empty the text on the input box.
+               input.val('');
+            });
+            
+            // ask for the name of the user, ask again if no name.
+            while (name == '') {
+               name = prompt("What's your name?","");
+            }
+            
+            // send the name to the server, and the server's 
+            // register wait will recieve this.
+            socket.emit('register', name );
+         });
+
+         // listen for chat event and recieve data
+
+         function sendMessageToServer(){      
+               // send message on inputbox to server
+               socket.emit('chat', $("#txtTextArea").val() );
+               
+               $("#txtAreaDisplay").val( $("#txtAreaDisplay").val()+"\r\n" + name + ': ' + $("#txtTextArea").val());
+               
+               // then we empty the text on the input box.
+               $("#txtTextArea").val('');
+            };
