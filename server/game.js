@@ -89,17 +89,29 @@ function onClientDisconnect() {
 // New player has joined
 function onNewPlayer(data) {
    // Create a new player
-   var newPlayer = new Player(data.x, data.y,data.state);
+   var newPlayer = new Player(data.x, data.y,data.state, data.type);
    newPlayer.id = this.id;
 
    // Broadcast new player to connected socket clients
-   this.broadcast.emit("new player", {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(),state: newPlayer.getState()});
+   this.broadcast.emit("new player", 
+							  {id: newPlayer.id, 
+								x: newPlayer.getX(), 
+								y: newPlayer.getY(),
+								state: newPlayer.getState(),
+								type: newPlayer.getType()
+							  });
 
    // Send existing players to the new player
    var i, existingPlayer;
    for (i = 0; i < players.length; i++) {
       existingPlayer = players[i];
-      this.emit("new player", {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(),state: existingPlayer.getState()});
+      this.emit("new player", 
+					 {id: existingPlayer.id, 
+					  x: existingPlayer.getX(), 
+					  y: existingPlayer.getY(),
+					  state: existingPlayer.getState(),
+					  type: existingPlayer.getType()
+					 });
    }
       
    // Add new player to the players array

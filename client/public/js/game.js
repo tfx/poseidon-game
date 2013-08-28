@@ -16,12 +16,27 @@ function init() {
 
    keys = new Keys();
    var startX = Math.round(Math.random()*(canvas.width-5)),
-      startY = Math.round(Math.random()*(canvas.height-5));
-
+       startY = Math.round(Math.random()*(canvas.height-5));
+	var typeShip = Math.floor(Math.random() * 3) + 1;
    // Initialise the local player
    // Create an object
    background = new Background('water.png', 64, 64);
-   localPlayer = new Player('ship-sprite.png', 186, 186,2,startX, startY, 0);
+	switch(typeShip) {
+	case 1:
+		localPlayer = new Player('black-sprite.png', 186, 186,2,startX, startY, 1);
+		localPlayer.setType(1);
+		break;
+	case 2:
+		localPlayer = new Player('red-sprite.png', 186, 186,2,startX, startY, 2);
+		localPlayer.setType(2);
+		break;
+	default:
+		localPlayer = new Player('green-sprite.png', 186, 186,2,startX, startY, 3);
+		localPlayer.setType(3);
+		break;
+	}
+	localPlayer.setHp(100);
+	localPlayer.setScore(0);
    localPlayer.projectileTimer = Date.now();
    localPlayer.shootDelay = 200;
    projectiles = [];
@@ -94,7 +109,11 @@ function onSocketConnected() {
    console.log("Connected to socket server");
 
    // Send local player data to the game server
-   socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), state: localPlayer.getState()});
+   socket.emit("new player", 
+					{x: localPlayer.getX(), 
+					 y: localPlayer.getY(), 
+					 state: localPlayer.getState(), 
+					 type: localPlayer.getType()});
 }
 
 // Socket disconnected
@@ -106,8 +125,20 @@ function onSocketDisconnect() {
 function onNewPlayer(data) {
    console.log("New player connected: "+data.id);
 
+	var newPlayer;
+
    // Initialise the new player
-   var newPlayer = new Player('ship-sprite.png', 186, 186,2,data.x, data.y, data.state);
+	switch(data.type) {
+	case 1:
+		newPlayer = new Player('black-sprite.png', 186, 186,2,data.x, data.y, 1);
+		break;
+	case 2:
+		newPlayer = new Player('red-sprite.png', 186, 186,2,data.x, data.y, 2);
+		break;
+	case 3:
+		newPlayer = new Player('green-sprite.png', 186, 186,2,data.x, data.y, 3);
+		break;
+	}
    newPlayer.id = data.id;
 
    // Add new player to the remote players array
@@ -241,22 +272,22 @@ function update(mod) {
    }
    updateProjectiles(mod);
 	// for (var key in projectiles) {
- //      if (
- //         projectiles[key].x < enemy.x + enemy.width &&
- //            projectiles[key].x + enemy.width > enemy.x &&
- //            projectiles[key].y < enemy.y + enemy.height &&
- //            projectiles[key].y + enemy.height > enemy.y
- //      )
+	//      if (
+	//         projectiles[key].x < enemy.x + enemy.width &&
+	//            projectiles[key].x + enemy.width > enemy.x &&
+	//            projectiles[key].y < enemy.y + enemy.height &&
+	//            projectiles[key].y + enemy.height > enemy.y
+	//      )
 
- //      {
- //         var x = enemy.x;
- //         var y = enemy.y;
- //         enemy.x = Math.random() * canvas.width;
- //         enemy.y = Math.random() * canvas.height;
+	//      {
+	//         var x = enemy.x;
+	//         var y = enemy.y;
+	//         enemy.x = Math.random() * canvas.width;
+	//         enemy.y = Math.random() * canvas.height;
 	// 		coin.loaded = true;
 	// 		coin.x = x;
 	// 		coin.y = y;
- //      }
+	//      }
 	// }
 
    // if (65 in keysDown) {

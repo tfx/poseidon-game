@@ -1,19 +1,21 @@
-var Player = function(imgsrc, width, height, speed,startX, startY,stateval) {
+var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, typeShip) {
 	var x = startX,
-		y = startY,
-		id,
-		moveAmount = speed,
-		image = document.createElement('img'),		
-		width = width,
-		height = height,
-		state = stateval;
+	  y = startY,
+	  id,
+	  moveAmount = speed,
+	  image = document.createElement('img'),		
+	  width = widthW,
+	  height = heightH,
+	  state = stateval,
+	  color = typeShip
+	;
 	var projectileTimer,
-		shootDelay;
+	  shootDelay;
 
 	var score,
-		level,
-		exp,
-		hp;
+	  level,
+	  exp,
+	  hp;
 
 	image.onload = function() {
 		
@@ -78,11 +80,19 @@ var Player = function(imgsrc, width, height, speed,startX, startY,stateval) {
 		return hp;
 	}
 
+	var getType = function() {
+		return color;
+	}
+
+	var setType = function(newType) {
+		color= newType;
+	}
+
 	// Update player position
 	var update = function(keys) {
 		// Previous position
 		var prevX = x,
-			prevY = y;
+		prevY = y;
 
 		// Up key takes priority over down
 		if (keys.up) {
@@ -138,7 +148,9 @@ var Player = function(imgsrc, width, height, speed,startX, startY,stateval) {
 		getHp: getHp,
 		setHp: setHp,
 		getState: getState,
-		setState: setState,		
+		setState: setState,	
+		setType: setType,
+		getType: getType,
 		update: update,
 		draw: draw
 	}

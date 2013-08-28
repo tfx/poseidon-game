@@ -1,13 +1,14 @@
-var Player = function(startX, startY,stateVal) {
+var Player = function(startX, startY,stateVal, typeShip) {
 	var x = startX,
-		y = startY,
-		state = stateVal,
-		id;
+	  y = startY,
+	  state = stateVal,
+	  type = typeShip,
+	  id;
 
 	var score,
-		level,
-		exp,
-		hp;
+	  level,
+	  exp,
+	  hp;
 
 	// Getters and setters
 	var getX = function() {
@@ -66,6 +67,14 @@ var Player = function(startX, startY,stateVal) {
 		return hp;
 	}
 
+	var getType = function() {
+		return type;
+	}
+
+	var setType = function(newType) {
+		type = newType;
+	} 
+
 	// Define which variables and methods can be accessed
 	return {
 		getX: getX,
@@ -82,6 +91,8 @@ var Player = function(startX, startY,stateVal) {
 		setExp: setExp,
 		getHp: getHp,
 		setHp: setHp,
+		getType: getType,
+		setType: setType,
 		id: id
 	}
 }
