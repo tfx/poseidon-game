@@ -5,6 +5,87 @@ var score = Math.random();
 canvas.width = 1536;
 canvas.height = 768;
 
+/*
+*
+* CHAT APPLICATION (handle physically buttons and events)
+*
+*/
+// Chat application Variable Declare
+var btnEnterText = document.getElementById("btnEnterText");
+var txtTextInput = document.getElementById("txtTextArea");
+var txtTextDisplay = document.getElementById("txtAreaDisplay");
+var textInputPanel = document.getElementById("txtTextInput");
+var isWritting = 0;
+var logs = document.getElementById("Logs")
+var btnClose = document.getElementById("btnCloseLog");
+var btnClear = document.getElementById("btnClearLog");
+textInputPanel.style.display = "none";
+document.onkeydown = function() {
+   if (event.keyCode == 13) {  
+    addText();
+ }
+ if(event.keyCode == 192){
+   closeLog();
+}
+}
+
+//Enter button event handler
+btnEnterText.addEventListener("click",function(){ 
+   textInputPanel.style.display = "none";
+
+}, false);
+
+//Close Log Button
+btnClose.addEventListener("click", function(){
+   if (logs.style.display=="block"){
+      logs.style.display="none" 
+   }else{
+      logs.style.display="block" 
+   }
+
+},false);
+
+//clear log button
+btnClear.addEventListener("click", function(){
+   txtTextDisplay.value="";
+}, false);
+
+function closeLog(){
+   if (logs.style.display=="block"){
+      logs.style.display="none" 
+   }else{
+      logs.style.display="block" 
+   }
+}
+
+function addText(){
+
+   if (textInputPanel.style.display=="block"){
+      txtTextInput.focus();
+      var text=txtTextInput.value;
+      if(text == "cmd clear"){
+         txtTextDisplay.value="";
+      }else if(text == "cmd close"){
+         closeLog();
+      }else if(text == "cmd show"){
+         closeLog();
+      }else if(text.length!=0){
+         sendMessageToServer(); 
+      }
+      isWritting = 0;
+      textInputPanel.style.display="none"
+   }
+   else{
+      isWritting = 0;
+      isWritting = 1;
+      textInputPanel.style.display="block"     
+      txtTextInput.value="";
+   }
+}
+
+      /* END CHAT APPLICATION */
+
+
 // Class sea background
 function Background (image, width, height) {
    this.image = new Image();
@@ -22,7 +103,7 @@ function drawBackground (sea) {
             sea.image,
             l * 64,
             i * 64
-         );
+            );
       }
    }
 }
@@ -52,7 +133,7 @@ function drawSprite(ship) {
       ship.y,
       ship.width,
       ship.height
-   );
+      );
 }
 
 
@@ -96,10 +177,10 @@ function Sprite (image, width, height, x, y, speed, loaded)
    this.image.src = image;
    this.width = width;
    this.height = height;
-	this.x = x;
-	this.y = y;
+   this.x = x;
+   this.y = y;
    this.speed = speed;
-	this.loaded = loaded;
+   this.loaded = loaded;
 }
 
 function DrawSprite (enemy)
@@ -114,7 +195,7 @@ function DrawSprite (enemy)
       enemy.y,
       enemy.width,
       enemy.height
-   );
+      );
 }
 
 
@@ -168,38 +249,38 @@ function update(mod) {
       pirate.projectileTimer = Date.now();
    }
    updateProjectiles(mod);
-	for (var key in projectiles) {
+   for (var key in projectiles) {
       if (
          projectiles[key].x < Enemy.x + Enemy.width &&
-            projectiles[key].x + Enemy.width > Enemy.x &&
-            projectiles[key].y < Enemy.y + Enemy.height &&
-            projectiles[key].y + Enemy.height > Enemy.y
-      )
+         projectiles[key].x + Enemy.width > Enemy.x &&
+         projectiles[key].y < Enemy.y + Enemy.height &&
+         projectiles[key].y + Enemy.height > Enemy.y
+         )
 
       {
          var x = Enemy.x;
          var y = Enemy.y;
          Enemy.x = Math.random() * canvas.width;
          Enemy.y = Math.random() * canvas.height;
-			Coin.loaded = true;
-			Coin.x = x;
-			Coin.y = y;
+         Coin.loaded = true;
+         Coin.x = x;
+         Coin.y = y;
       }
-	}
+   }
 
-   if (65 in keysDown) {
+   if (65 in keysDown && isWritting == 0) {
       pirate.state = 2; //A
       pirate.x -= pirate.speed * mod;
    }
-   if (87 in keysDown) {
+   if (87 in keysDown && isWritting == 0) {
       pirate.state = 3; //W
       pirate.y -= pirate.speed * mod;
    }
-   if (68 in keysDown) {
+   if (68 in keysDown && isWritting == 0) {
       pirate.state = 0; //D
       pirate.x += pirate.speed * mod;
    }
-   if (83 in keysDown) {
+   if (83 in keysDown && isWritting == 0) {
       pirate.state = 1; //S
       pirate.y += pirate.speed * mod;
    }
@@ -218,10 +299,11 @@ function render() {
    }
 
 
-	if (Enemy.loaded == true)
-		DrawSprite(Enemy);
-	if (Coin.loaded == true)
-		DrawSprite(Coin);
+   if (Enemy.loaded == true)
+    DrawSprite(Enemy);
+ if (Coin.loaded == true)
+    DrawSprite(Coin);
+
 
 }
 
