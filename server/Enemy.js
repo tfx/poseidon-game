@@ -1,7 +1,9 @@
-var Enemy = function(startX, startY,stateVal) {
+var Enemy = function(startX, startY,stateVal, mX, mY) {
 	var x = startX,
 		y = startY,
 		state = stateVal,
+	  mx = mX,
+	  my = mY,
 		id;
 
 	// Getters and setters
@@ -29,6 +31,21 @@ var Enemy = function(startX, startY,stateVal) {
 		state = newState;
 	}
 
+	var setMx = function (newMx) {
+		mx = newMx;
+	}
+	var setMy = function (newMy) {
+		my= newMy;
+	}
+
+	var getMx = function () {
+		return mx;
+	}
+
+	var getMy = function () {
+		return my;
+	}
+
 	return {
 		getX: getX,
 		getY: getY,
@@ -36,6 +53,10 @@ var Enemy = function(startX, startY,stateVal) {
 		setY: setY,
 		getState: getState,
 		setState: setState,
+		getMy: getMy,
+		setMy: setMy,
+		getMx: getMx,
+		setMx: setMx,
 		id: id
 	}
 }

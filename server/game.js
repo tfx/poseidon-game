@@ -9,10 +9,7 @@ var socket,    // Socket controller
    enemies, // Array of enemies
    coins; //Array of items
 
-var testEnemy = new Enemy(200, 300,0);
-var mx = 1;
-var my = 1;
-
+var testEnemy = new Enemy(200, 300,0, 1, 1);
 function init() {
    // Create an empty array to store players
    players = [];
@@ -173,9 +170,26 @@ function onNewPlayer(data) {
 	for (num = 0; num < 10; num++) {
 		var w = Math.floor(Math.random() * 1440);
 		var h = Math.floor(Math.random() * 470);
-		var newEnemy = new Enemy(w, h,0);
+		var newEnemy;
+		if (num == 4 || num == 8) {
+			newEnemy = new Enemy(w, h,0, -1, 1);
+		} else if (num == 6) {
+			newEnemy = new Enemy(w, h,0, 1, -1);
+		} else if (num == 9) {
+			newEnemy = new Enemy(w, h,0, -1, -1);
+		} else {
+			newEnemy = new Enemy(w, h,0, 1, 1);
+		}
+
 		newEnemy.id = num + 2;
-		this.emit("new enemy", {id: newEnemy.id, x: newEnemy.getX(), y: newEnemy.getY(),state: newEnemy.getState()});
+		this.emit("new enemy", {
+			id: newEnemy.id, 
+			x: newEnemy.getX(), 
+			y: newEnemy.getY(),
+			state: newEnemy.getState(),
+			mx: newEnemy.getMx(),
+			my:newEnemy.getMy()
+		});
 		enemies.push(newEnemy);
 		util.log("add tested enemy" + num);
 	}
@@ -209,11 +223,12 @@ function onMoveEnemy () {
 		existingEnemy = enemies[num];
 		var x = existingEnemy.getX();
 		var y = existingEnemy.getY();
-		var w = Math.floor(Math.random()*1440) ;
-		var h = Math.floor(Math.random()*470);
-		if (x==0 || x == 1440)
+		var mx = existingEnemy.getMx() ;
+		var my = existingEnemy.getMy();
+
+		if (x + mx > 1440 || x + mx < 0)
 			mx = -mx;
-		if (y==0 || y == 470)
+		if (y + my > 650 || y + my < 0)
 			my = -my;
 		
 		x += mx;
@@ -221,15 +236,14 @@ function onMoveEnemy () {
 
 		existingEnemy.setX(x);
 		existingEnemy.setY(y);
+		existingEnemy.setMx(mx);
+		existingEnemy.setMy(my);
 		socket.sockets.emit("move enemy", 
 								  {id: existingEnemy.id, 
 									x: existingEnemy.getX(), 
 									y: existingEnemy.getY(),
 									state: existingEnemy.getState()
 													 });	
-		if (num == 1) {
-			util.log ("new x: " + x + " new y: " + y + "new w: " + w + " new h: " + h);
-			}
 	}
 }
 
