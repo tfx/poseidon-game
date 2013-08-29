@@ -209,11 +209,11 @@ function onMoveEnemy () {
 		existingEnemy = enemies[num];
 		var x = existingEnemy.getX();
 		var y = existingEnemy.getY();
-		var w = Math.random() * 1440;
-		var h = Math.random() * 470;
-		if (x + mx > w || x + mx < 0)
+		var w = Math.floor(Math.random()*1440) ;
+		var h = Math.floor(Math.random()*470);
+		if (x==0 || x == 1440)
 			mx = -mx;
-		if (y + my > h || y + my < 0)
+		if (y==0 || y == 470)
 			my = -my;
 		
 		x += mx;
@@ -221,15 +221,16 @@ function onMoveEnemy () {
 
 		existingEnemy.setX(x);
 		existingEnemy.setY(y);
-		util.log ("new x: " + x + " new y: " + y);
 		socket.sockets.emit("move enemy", 
 								  {id: existingEnemy.id, 
 									x: existingEnemy.getX(), 
 									y: existingEnemy.getY(),
 									state: existingEnemy.getState()
 													 });	
+		if (num == 1) {
+			util.log ("new x: " + x + " new y: " + y + "new w: " + w + " new h: " + h);
+			}
 	}
-
 }
 
 
