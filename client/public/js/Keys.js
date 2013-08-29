@@ -1,3 +1,4 @@
+var shot = AudioFX("../audio/shot.mp3");
 var Keys = function() {
 	var up, left, right, down;
 		
@@ -8,15 +9,19 @@ var Keys = function() {
 			// Controls
 			case 65: // Left
 				that.left = true;
+				shot.play();
 				break;
 			case 87: // Up
 				that.up = true;
+				shot.play();
 				break;
 			case 68: // Right
 				that.right = true; 
+				shot.play();
 				break;
 			case 83: // Down
 				that.down = true;
+				shot.play();
 				break;
 		}
 	}
