@@ -103,7 +103,11 @@ function addEnemies() {
    var testEnemy = new Enemy(300, 300,0);
    testEnemy.id = 1;
    util.log("add tested enemy");
-   this.broadcast.emit("new enemy", {id: testEnemy.id, x: testEnemy.getX(), y: testEnemy.getY(),state: testEnemy.getState()});
+   this.broadcast.emit("new enemy", 
+							  {id: testEnemy.id, 
+								x: testEnemy.getX(), 
+								y: testEnemy.getY(),
+								state: testEnemy.getState()});
 }
 
 // Socket client has disconnected
@@ -157,12 +161,24 @@ function onNewPlayer(data) {
    players.push(newPlayer);
 
    //Send enemy to the new player
- //  var testEnemy = new Enemy(200, 300,0);
+	/*
+	var testEnemy = new Enemy(200, 300,0);
    testEnemy.id = 1;
    util.log("add tested enemy");
    this.emit("new enemy", {id: testEnemy.id, x: testEnemy.getX(), y: testEnemy.getY(),state: testEnemy.getState()});
+	 */
  //  this.emit("new enemy", {id: 2, x: 150, y: 400,state: 0});
  //  this.emit("new enemy", {id: 3, x: 50, y: 400,state: 0});
+	var num, existingEnemy;
+	for (num = 0; num < 10; num++) {
+		var w = Math.floor(Math.random() * 1440);
+		var h = Math.floor(Math.random() * 470);
+		var newEnemy = new Enemy(w, h,0);
+		newEnemy.id = num + 2;
+		this.emit("new enemy", {id: newEnemy.id, x: newEnemy.getX(), y: newEnemy.getY(),state: newEnemy.getState()});
+		enemies.push(newEnemy);
+		util.log("add tested enemy" + num);
+	}
 
 }
 
@@ -188,30 +204,36 @@ function onMovePlayer(data) {
 
 // Enemy has moved
 function onMoveEnemy () {
-	var x = testEnemy.getX();
-	var y = testEnemy.getY();
-	var w = Math.random() * (1024) + 500;
-	var h = Math.random() * (500) + 500;
-	if (x + mx > w || x + mx < 0)
-		mx = -mx;
-	if (y + my > h || y + my < 0)
-		my = -my;
-	
-	x += mx;
-	y += my;
+	var num, existingEnemy;
+	for (num = 0; num < enemies.length; num++) {
+		existingEnemy = enemies[num];
+		var x = existingEnemy.getX();
+		var y = existingEnemy.getY();
+		var w = Math.random() * 1440;
+		var h = Math.random() * 470;
+		if (x + mx > w || x + mx < 0)
+			mx = -mx;
+		if (y + my > h || y + my < 0)
+			my = -my;
+		
+		x += mx;
+		y += my;
 
-	testEnemy.setX(x);
-	testEnemy.setY(y);
-	util.log ("new x: " + x + " new y: " + y);
-   socket.sockets.emit("move enemy", {id: testEnemy.id, x: testEnemy.getX(), y: testEnemy.getY(),state: testEnemy.getState()});	
+		existingEnemy.setX(x);
+		existingEnemy.setY(y);
+		util.log ("new x: " + x + " new y: " + y);
+		socket.sockets.emit("move enemy", 
+								  {id: existingEnemy.id, 
+									x: existingEnemy.getX(), 
+									y: existingEnemy.getY(),
+									state: existingEnemy.getState()
+													 });	
+	}
+
 }
 
 
 function onPlayerShoot(data) {
-
-}
-
-function addEnemy() {
 
 }
 
