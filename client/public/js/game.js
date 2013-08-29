@@ -83,6 +83,7 @@ var setEventHandlers = function() {
    socket.on("remove player", onRemovePlayer);
 
    socket.on("new enemy", onNewEnemy);
+	socket.on("move enemy", onMoveEnemy);
 
     socket.on('chat', function (data) {
            
@@ -192,6 +193,21 @@ function onNewEnemy(data) {
    enemies.push(enemy);
    console.log("add test enemy");
 }
+
+function onMoveEnemy (data) {
+	var moveEnemy = enemyById(data.id);
+
+   if (!moveEnemy) {
+      console.log("Enemy not found: "+data.id);
+      return;
+   }	else {
+	moveEnemy.setX(data.x);
+	moveEnemy.setY(data.y);
+		console.log("enemy found!!");
+	}
+	
+}
+
 
 // Class sea background
 function Background (image, width, height) {
