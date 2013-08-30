@@ -5,7 +5,7 @@ var Player = function(startX, startY,stateVal, typeShip) {
 	  type = typeShip,
 	  id;
 
-	var score,
+	var score=0,
 	  level,
 	  exp,
 	  hp;

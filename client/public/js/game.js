@@ -10,6 +10,7 @@ var keys, localPlayer, remotePlayers,socket;
 var background,projectiles,enemy,coin;
 
 var enemies;
+var bullets;
 
 function init() {
    
@@ -42,6 +43,7 @@ function init() {
    localPlayer.projectileTimer = Date.now();
    localPlayer.shootDelay = 200;
    projectiles = [];
+   bullets = [];
    //enemy = new Sprite ('enemy.png', 50,50, Math.random() * canvas.width, Math.random() * canvas.height, 200, true);
    //coin = new Sprite ('coin.png', 25, 25,Math.random() * canvas.width, Math.random() * canvas.height, 0, false);
 
@@ -86,14 +88,22 @@ var setEventHandlers = function() {
 
    socket.on("new enemy", onNewEnemy);
 	socket.on("move enemy", onMoveEnemy);
+   socket.on("remove enemy", onRemoveEnemy);
 
-    socket.on('chat', function (data) {
-           
-            
-            $("#txtAreaDisplay").val($("#txtAreaDisplay").val()+"\r\n" + data.msgr + ': ' + data.msg);
-            
+   socket.on('chat', function (data) {            
+            $("#txtAreaDisplay").val($("#txtAreaDisplay").val()+"\r\n[" + data.msgr + ']: ' + data.msg);
+   });
 
-          });
+   socket.on("new bullet",onNewBullet);
+   socket.on("move bullet",onMoveBullet);
+   socket.on("remove bullet",onRemoveBullet);
+
+   socket.on("hit enemy",onHitEnemy);
+}
+
+function onHitEnemy(data) {
+   $('#score').html(data.newScore);
+   console.log("update score");
 }
 
 // Keyboard key down
@@ -203,7 +213,7 @@ function onNewEnemy(data) {
    var enemy = new Enemy('enemy.png', 50,50,2,data.x,data.y,data.state);
    enemy.id = data.id;
    enemies.push(enemy);
-   console.log("add test enemy");
+   console.log("add test enemy " + enemy.id);
 }
 
 function onMoveEnemy (data) {
@@ -246,36 +256,6 @@ function drawBackground (sea) {
 
 
 
-// Class bullet
-function Projectile(x, y, trajectory, size, color, speed) {
-   this.x = x;
-   this.y = y;
-   this.trajectory = trajectory;
-   this.size = size;
-   this.color = color;
-   this.speed = speed;
-}
-
-function Trajectory(startX, startY, endX, endY) {
-   this.length = Math.sqrt(Math.pow((endX - startX), 2) + Math.pow((endY - startY), 2));
-   this.x = (endX - startX) / this.length;
-   this.y = (endY - startY) / this.length;
-}
-
-function drawSquare(x, y, size, color) {
-   ctx.fillStyle = color;
-   ctx.fillRect(Math.round(x), Math.round(y), size, size);
-}
-
-function updateProjectiles(mod) {
-   for (var key in projectiles) {
-      projectiles[key].x += projectiles[key].trajectory.x * projectiles[key].speed * mod;
-      projectiles[key].y += projectiles[key].trajectory.y * projectiles[key].speed * mod;
-      if (projectiles[key].x > canvas.width || projectiles[key].x < 0 || projectiles[key].y > canvas.height || projectiles[key].y < 0) {
-         projectiles.splice(key, 1);
-      }
-   }
-}
 
 
 var mouse = {
@@ -292,25 +272,26 @@ window.addEventListener('mouseup', function(e) {
 window.addEventListener('mousemove', function(e) {
    mouse.x = e.clientX - canvas.offsetLeft;
    mouse.y = e.clientY - canvas.offsetTop;
+   //console.log("mouse x: " + mouse.x + " - mouse y: "+ mouse.y);
 });
 
 
 // Update function
 function update(mod) {
    if (mouse.down && Date.now() - localPlayer.projectileTimer > localPlayer.shootDelay) {
-      var trajectory = new Trajectory(localPlayer.x + localPlayer.width / 2, localPlayer.y + 15, mouse.x, mouse.y);
-      var projectile = new Projectile(
-         localPlayer.x + localPlayer.width / 2,
-         localPlayer.y + 15,
-         trajectory,
-         10,
-         '#0f0',
-         1000 );
-      projectiles.push(projectile);
-      localPlayer.projectileTimer = Date.now();
-      console.log("shoot");
+      dy = mouse.y -localPlayer.getY();
+      dx = mouse.x - localPlayer.getX();
+      theta = Math.atan2(dy, dx);
+      theta *= 180/Math.PI;
+      //console.log(localPlayer.getID());
+      socket.emit("player shoot",{         
+         playerX : localPlayer.getX(),
+         playerY : localPlayer.getY(),
+         angle: theta
+      });
    }
-   updateProjectiles(mod);
+
+   //updateProjectiles(mod);
 	// for (var key in projectiles) {
 	//      if (
 	//         projectiles[key].x < enemy.x + enemy.width &&
@@ -330,26 +311,10 @@ function update(mod) {
 	//      }
 	// }
 
-   // if (65 in keysDown) {
-   //    pirate.state = 2; //A
-   //    pirate.x -= pirate.speed * mod;
-   // }
-   // if (87 in keysDown) {
-   //    pirate.state = 3; //W
-   //    pirate.y -= pirate.speed * mod;
-   // }
-   // if (68 in keysDown) {
-   //    pirate.state = 0; //D
-   //    pirate.x += pirate.speed * mod;
-   // }
-   // if (83 in keysDown) {
-   //    pirate.state = 1; //S
-   //    pirate.y += pirate.speed * mod;
-   // }
+  
 
    if (localPlayer.update(keys)) {
-      // Send local player data to the game server
-      //console.log("move player");
+     
       socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY(),state: localPlayer.getState()});
    }
 
@@ -364,9 +329,10 @@ function render() {
    //drawSprite(pirate);
    localPlayer.draw(ctx);
 
-   for (var key in projectiles) {
-      drawSquare(projectiles[key].x, projectiles[key].y, projectiles[key].size, projectiles[key].color);
-   }
+   // for (var key in projectiles) {
+   //    //console.log("key: "+key.x);
+   //    drawSquare(projectiles[key].x, projectiles[key].y, projectiles[key].size, projectiles[key].color);
+   // }
 
    // Draw the remote players
    var i;
@@ -377,6 +343,13 @@ function render() {
    //Draw the enemies
    for (i =0;i<enemies.length;i++) {
       enemies[i].draw(ctx);
+   }
+
+   for (i =0;i<bullets.length;i++) {
+
+      //bullets[i].draw(ctx);
+      ctx.fillStyle = bullets[i].color;
+      ctx.fillRect(Math.round(bullets[i].x), Math.round(bullets[i].y), bullets[i].size, bullets[i].size);
    }
 
 }
@@ -524,7 +497,7 @@ function addText(){
                socket.emit('chat', {name: localPlayer.getName(),
                   message: input.val() });
                
-               logs.val(logs.val()+"\r\n" + localPlayer.getName() + ': ' + input.val());
+               logs.val(logs.val()+"\r\n[" + localPlayer.getName() + ']: ' + input.val());
                
                // then we empty the text on the input box.
                input.val('');
@@ -533,16 +506,60 @@ function addText(){
            
 
             music.play();
-         });
+});
 
-         // listen for chat event and recieve data
+// listen for chat event and recieve data
 
-         function sendMessageToServer(){      
-               // send message on inputbox to server
-               socket.emit('chat', {name: localPlayer.getName(),message: $("#txtTextArea").val() });
-               
-               $("#txtAreaDisplay").val( $("#txtAreaDisplay").val()+"\r\n" + localPlayer.getName() + ': ' + $("#txtTextArea").val());
-               
-               // then we empty the text on the input box.
-               $("#txtTextArea").val('');
-            };
+function sendMessageToServer(){      
+      // send message on inputbox to server
+      socket.emit('chat', {name: localPlayer.getName(),message: $("#txtTextArea").val() });
+      
+      $("#txtAreaDisplay").val( $("#txtAreaDisplay").val()+"\r\n[" + localPlayer.getName() + ']: ' + $("#txtTextArea").val());
+      
+      // then we empty the text on the input box.
+      $("#txtTextArea").val('');
+   };
+
+function onNewBullet(data) {
+   var bullet = new Bullet(data.x,data.y,data.size,data.color);
+   bullet.id = data.id;
+   bullets.push(bullet);
+   console.log("add new bullet:" + bullet.id)
+}
+
+function onMoveBullet(data) {
+   var bullet = bulletById(data.id);
+   if (!bullet) {
+      console.log('no bullet');
+   } else {
+     // console.log('move bullet' + bullet.id + "from pos: " +bullet.x+"to new pos" + data.x + "!!");
+      bullet.x = data.x;
+      bullet.y = data.y;
+
+      
+   }  
+}
+
+function onRemoveBullet(data) {
+   for (i = 0; i < bullets.length; i++) {
+      if (bullets[i].id == data.id)
+         bullets.splice(i,1);
+   }
+}
+
+function onRemoveEnemy(data) {
+   for (i = 0; i < enemies.length; i++) {
+      if (enemies[i].id == data.id)
+         enemies.splice(i,1);
+   }
+}
+
+function bulletById(id) {
+   
+   for (i = 0; i < bullets.length; i++) {
+      if (bullets[i].id == id)
+         return bullets[i];
+   }
+   
+   return false;
+}

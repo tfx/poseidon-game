@@ -98,6 +98,14 @@ var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, ty
 		name = newName;
 	} 
 
+	var getID = function() {
+		return id;
+	}
+
+	var setID = function(newID) {
+		id = newID;
+	} 
+
 	// Update player position
 	var update = function(keys) {
 		// Previous position
@@ -163,7 +171,10 @@ var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, ty
 		getType: getType,
 		getName: getName,
 		setName: setName,
+		getID: getID,
+		setID: setID,
 		update: update,
-		draw: draw
+		draw: draw,
+		id: id
 	}
 }

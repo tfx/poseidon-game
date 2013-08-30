@@ -1,15 +1,18 @@
 var util = require("util"),               // Utility resources (logging, object inspection, etc)
    io = require("socket.io"),          // Socket.IO
-   Player = require("./Player").Player;   // Player class
-   Enemy = require("./Enemy").Enemy; // Enemy Class
-
+   Player = require("./Player").Player,   // Player class
+   Enemy = require("./Enemy").Enemy, // Enemy Class
+   Bullet = require("./Bullet").Bullet;
 
 var socket,    // Socket controller
    players, // Array of connected players
    enemies, // Array of enemies
    coins; //Array of items
 
+var bulletID = 0;
 var testEnemy = new Enemy(200, 300,0, 1, 1);
+var enemyID = 0;
+ var testBullet = new Bullet(1,1, 1, 1, 1, 1, 1);
 
 function init() {
    // Create an empty array to store players
@@ -28,7 +31,7 @@ function init() {
       socket.set("log level", 2);
    });
 
-   for (num = 0; num < 10; num++) {
+   for (num = 0; num < 30; num++) {
       var w = Math.floor(Math.random() * 1440);
       var h = Math.floor(Math.random() * 470);
       var newEnemy;
@@ -41,12 +44,15 @@ function init() {
       } else {
          newEnemy = new Enemy(w, h,0, 1, 1);
       }
-      newEnemy.id = num + 2;     
+      newEnemy.id = enemyID;
+      enemyID++;     
       enemies.push(newEnemy);
    }
 
    // Start listening for events
    setEventHandlers();
+
+  
 }
 
 
@@ -144,7 +150,7 @@ function onNewPlayer(data) {
    // Create a new player
    var newPlayer = new Player(data.x, data.y,data.state, data.type);
    newPlayer.id = this.id;
-
+   newPlayer.setName(data.name);
    socket.set('nickname', data.name); 
 
    // Broadcast new player to connected socket clients
@@ -249,11 +255,171 @@ function onMoveEnemy () {
 									state: existingEnemy.getState()
 													 });	
 	}
+   //checkCollidePlayer();
 }
 
 
-function onPlayerShoot(data) {
+function onPlayerShoot(data) {   
+   var shootPlayer = playerById(this.id);
+   if (!shootPlayer) {
+      util.log("player not found" + data.playerID);
+   } else {
+      //util.log("player "+shootPlayer.getName()+" shoot: angle: "+data.angle);
+      var color = "";
+      if (shootPlayer.getType()==1) {
+         color="black";
+      }
+      if (shootPlayer.getType()==2) {
+         color="red";
+      }
+      if (shootPlayer.getType()==3) {
+         color="green";
+      } 
+      var bullet = new Bullet(this.id,data.playerX+100,data.playerY+100,data.angle,10,color,30);
+      bullet.id = bulletID;
+      bulletID++;
+      socket.sockets.emit("new bullet",{
+         id: bullet.id,
+         x: bullet.x,
+         y: bullet.y,
+         size: bullet.size,
+         color: bullet.color
+      })
+      var that = this;
+      var fireBullet = setInterval(function(){
+         //util.log("move "+ bullet.x+" to ");
+         
+            bullet.x += bullet.speed * Math.cos(bullet.angle);
+            bullet.y += bullet.speed * Math.sin(bullet.angle);
+            checkCollide(bullet);
+            //util.log(bullet.x);
+            socket.sockets.emit("move bullet",{
+               id: bullet.id,
+               x: bullet.x,
+               y: bullet.y
+            });
+         
+      },60);
 
+      setTimeout(function(){
+         clearInterval(fireBullet);
+         socket.sockets.emit("remove bullet",{
+            id: bullet.id
+         })
+      }, 3000);
+
+
+   }
+
+}
+
+function checkCollidePlayer() {
+   for (j=0;j<players.length;j++) {
+      var player = players[j];
+      for (i=0;i<enemies.length;i++) {
+      //util.log("check collide with enemy "+i);
+      var enemy = enemies[i];
+      if ((Math.abs(player.getX()-enemy.getX())<30)&&(Math.abs(player.getY()-enemy.getY())<30))
+      {
+         
+         setTimeout(function(){
+            util.log("hit!!");
+             player.setScore(player.getScore()-1);
+         socket.sockets.emit("hit enemy",{
+            playerID: player.playerID,
+            newScore: player.getScore()            
+         });  
+         },500);
+             
+        
+      }
+
+      
+   }
+   }
+   
+}
+
+function checkCollide(bullet) {
+    //if (
+   //         projectiles[key].x < enemy.x + enemy.width &&
+   //            projectiles[key].x + enemy.width > enemy.x &&
+   //            projectiles[key].y < enemy.y + enemy.height &&
+   //            projectiles[key].y + enemy.height > enemy.y
+   //      )
+
+   for (i=0;i<enemies.length;i++) {
+      //util.log("check collide with enemy "+i);
+      var enemy = enemies[i];
+      if ((Math.abs(bullet.x-enemy.getX())<30)&&(Math.abs(bullet.y-enemy.getY())<30))
+      {
+         util.log("hit!!");
+         
+         var hitPlayer = playerById(bullet.playerID);
+         
+         hitPlayer.setScore(hitPlayer.getScore()+1);
+         socket.sockets.emit("hit enemy",{
+            playerID: bullet.playerID,
+            newScore: hitPlayer.getScore()            
+         });
+
+         socket.sockets.emit("remove enemy",{
+            id: enemy.id      
+         });
+
+         enemies.splice(i,1);
+         setTimeout(function(){            
+            spawnEnemy();   
+         },700);
+      }
+
+      
+   }
+}
+
+function spawnEnemy() {
+    var w = Math.floor(Math.random() * 1440);
+      var h = Math.floor(Math.random() * 470);
+      var num = Math.floor(Math.random()*10);
+      var newEnemy;
+      if (num == 4 || num == 8) {
+         newEnemy = new Enemy(w, h,0, -1, 1);
+      } else if (num == 6) {
+         newEnemy = new Enemy(w, h,0, 1, -1);
+      } else if (num == 9) {
+         newEnemy = new Enemy(w, h,0, -1, -1);
+      } else {
+         newEnemy = new Enemy(w, h,0, 1, 1);
+      }
+      newEnemy.id = ++enemyID;
+      //enemyID++;     
+      //util.log("add more enemy: "+newEnemy.id);
+      enemies.push(newEnemy);
+      var num, existingEnemy;
+         
+         socket.sockets.emit("new enemy", {
+            id: newEnemy.id, 
+            x: newEnemy.getX(), 
+            y: newEnemy.getY(),
+            state: newEnemy.getState(),
+            mx: newEnemy.getMx(),
+            my:newEnemy.getMy()
+         });
+         
+         util.log("add tested enemy" + newEnemy.id);
+      
+      util.log("enemy size:" + enemies.length);
+
+}
+
+function moveBullet(bullet) {
+   bullet.x += bullet.speed * Math.cos(bullet.angle);
+   bullet.y += bullet.speed * Math.sin(bullet.angle);
+   socket.sockets.emit("move bullet",{
+      id: bullet.id,
+      x: bullet.x,
+      y: bullet.y
+   });
 }
 
 function playerById(id) {
@@ -276,4 +442,4 @@ function enemyById(id) {
    return false;
 }
 init();
-setInterval(onMoveEnemy,1000/60);
+setInterval(onMoveEnemy,1000/40);
