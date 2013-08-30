@@ -1,7 +1,7 @@
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var score = Math.random();
-var music = AudioFX("audio/in_game.mp3");
+var music = AudioFX("audio/in_game.mp3",{loop: true});
 //music.play();
 var shot = AudioFX("audio/shot.mp3");
 
