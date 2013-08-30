@@ -1,0 +1,10 @@
+{
+  "author": "Nguyen Manh Khoi, Nguyen Vuong, Tran Nhat Quang, Dinh Hoang Phuc",
+  "name": "Poseidon",
+  "description": "A multiplayer shooting game.",
+  "version": "1.0.0",
+  "dependencies": {
+    "socket.io": "*",
+    "express" : "*"
+  }
+}

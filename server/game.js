@@ -255,7 +255,7 @@ function onMoveEnemy () {
 									state: existingEnemy.getState()
 													 });	
 	}
-   //checkCollidePlayer();
+   checkCollidePlayer();
 }
 
 
@@ -319,17 +319,22 @@ function checkCollidePlayer() {
       for (i=0;i<enemies.length;i++) {
       //util.log("check collide with enemy "+i);
       var enemy = enemies[i];
-      if ((Math.abs(player.getX()-enemy.getX())<30)&&(Math.abs(player.getY()-enemy.getY())<30))
-      {
+
+      if ((Math.abs(player.getX()+100-enemy.getX())<30)&&(Math.abs(player.getY()+100-enemy.getY())<30))
+      {       
+            
+            util.log("platyer hit!!");
+            if (player.is_hit == false) {
+               player.setScore(player.getScore()-1);
+               player.is_hit = true;
+            }
+            setTimeout(function(){player.is_hit = false;
+            },400);
+            socket.sockets.emit("hit enemy",{
+               playerID: player.playerID,
+               newScore: player.getScore()            
+            });  
          
-         setTimeout(function(){
-            util.log("hit!!");
-             player.setScore(player.getScore()-1);
-         socket.sockets.emit("hit enemy",{
-            playerID: player.playerID,
-            newScore: player.getScore()            
-         });  
-         },500);
              
         
       }

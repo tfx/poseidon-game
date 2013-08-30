@@ -8,7 +8,8 @@ var Player = function(startX, startY,stateVal, typeShip) {
 	var score=0,
 	  level,
 	  exp,
-	  hp;
+	  hp,
+	  is_hit=false;
 
 	var name;
 
@@ -105,7 +106,8 @@ var Player = function(startX, startY,stateVal, typeShip) {
 		setType: setType,
 		getName: getName,
 		setName: setName,
-		id: id
+		id: id,
+		is_hit: is_hit
 	}
 }
 

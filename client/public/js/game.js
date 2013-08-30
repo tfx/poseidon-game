@@ -42,14 +42,10 @@ function init() {
 	localPlayer.setScore(0);
    localPlayer.projectileTimer = Date.now();
    localPlayer.shootDelay = 200;
-   projectiles = [];
+   
+   //Make the bullets array to store all the bullets
    bullets = [];
-   //enemy = new Sprite ('enemy.png', 50,50, Math.random() * canvas.width, Math.random() * canvas.height, 200, true);
-   //coin = new Sprite ('coin.png', 25, 25,Math.random() * canvas.width, Math.random() * canvas.height, 0, false);
-
-
-   //localPlayer = new Player(startX, startY);
-   //socket = io.connect("http://localhost", {port: 8000, transports: ["websocket"]});
+  
    socket = io.connect("http://localhost", {port: 8000});
    // Initialise remote players array
    remotePlayers = [];
@@ -213,7 +209,7 @@ function onNewEnemy(data) {
    var enemy = new Enemy('enemy.png', 50,50,2,data.x,data.y,data.state);
    enemy.id = data.id;
    enemies.push(enemy);
-   console.log("add test enemy " + enemy.id);
+   //console.log("add test enemy " + enemy.id);
 }
 
 function onMoveEnemy (data) {
@@ -277,7 +273,7 @@ window.addEventListener('mousemove', function(e) {
 
 
 // Update function
-function update(mod) {
+function update() {
    if (mouse.down && Date.now() - localPlayer.projectileTimer > localPlayer.shootDelay) {
       dy = mouse.y -localPlayer.getY();
       dx = mouse.x - localPlayer.getX();
@@ -290,28 +286,6 @@ function update(mod) {
          angle: theta
       });
    }
-
-   //updateProjectiles(mod);
-	// for (var key in projectiles) {
-	//      if (
-	//         projectiles[key].x < enemy.x + enemy.width &&
-	//            projectiles[key].x + enemy.width > enemy.x &&
-	//            projectiles[key].y < enemy.y + enemy.height &&
-	//            projectiles[key].y + enemy.height > enemy.y
-	//      )
-
-	//      {
-	//         var x = enemy.x;
-	//         var y = enemy.y;
-	//         enemy.x = Math.random() * canvas.width;
-	//         enemy.y = Math.random() * canvas.height;
-	// 		coin.loaded = true;
-	// 		coin.x = x;
-	// 		coin.y = y;
-	//      }
-	// }
-
-  
 
    if (localPlayer.update(keys)) {
      
@@ -357,18 +331,16 @@ function render() {
 
 // Run
 function run() {
-   update((Date.now() - time) / 1000);
-   //updateProjectiles((Date.now() - time) / 1000);
+   update();
    render();
-   time = Date.now();
 }
 
-var time = Date.now();
 init();
 //setInterval(run, 1000/60);
 //run();
 
 // shim layer with setTimeout fallback
+// Copyrigtt Paul Irish http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
 window.requestAnimFrame = (function(){
   return  window.requestAnimationFrame       ||
           window.webkitRequestAnimationFrame ||
@@ -407,12 +379,7 @@ function enemyById(id) {
    return false;
 }
 
-/*
-*
-* CHAT APPLICATION (handle physically buttons and events)
-*
-*/
-// Chat application Variable Declare
+
 var btnEnterText = document.getElementById("btnEnterText");
 var txtTextInput = document.getElementById("txtTextArea");
 var txtTextDisplay = document.getElementById("txtAreaDisplay");
@@ -524,7 +491,7 @@ function onNewBullet(data) {
    var bullet = new Bullet(data.x,data.y,data.size,data.color);
    bullet.id = data.id;
    bullets.push(bullet);
-   console.log("add new bullet:" + bullet.id)
+  // console.log("add new bullet:" + bullet.id)
 }
 
 function onMoveBullet(data) {
