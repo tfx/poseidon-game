@@ -17,6 +17,8 @@ var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, ty
 	  exp,
 	  hp;
 
+	var name;
+
 	image.onload = function() {
 		
 	}
@@ -88,6 +90,14 @@ var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, ty
 		color= newType;
 	}
 
+	var getName = function() {
+		return name;
+	}
+
+	var setName = function(newName) {
+		name = newName;
+	} 
+
 	// Update player position
 	var update = function(keys) {
 		// Previous position
@@ -151,6 +161,8 @@ var Player = function(imgsrc, widthW, heightH, speed,startX, startY,stateval, ty
 		setState: setState,	
 		setType: setType,
 		getType: getType,
+		getName: getName,
+		setName: setName,
 		update: update,
 		draw: draw
 	}

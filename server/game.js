@@ -10,6 +10,7 @@ var socket,    // Socket controller
    coins; //Array of items
 
 var testEnemy = new Enemy(200, 300,0, 1, 1);
+
 function init() {
    // Create an empty array to store players
    players = [];
@@ -26,6 +27,23 @@ function init() {
       
       socket.set("log level", 2);
    });
+
+   for (num = 0; num < 10; num++) {
+      var w = Math.floor(Math.random() * 1440);
+      var h = Math.floor(Math.random() * 470);
+      var newEnemy;
+      if (num == 4 || num == 8) {
+         newEnemy = new Enemy(w, h,0, -1, 1);
+      } else if (num == 6) {
+         newEnemy = new Enemy(w, h,0, 1, -1);
+      } else if (num == 9) {
+         newEnemy = new Enemy(w, h,0, -1, -1);
+      } else {
+         newEnemy = new Enemy(w, h,0, 1, 1);
+      }
+      newEnemy.id = num + 2;     
+      enemies.push(newEnemy);
+   }
 
    // Start listening for events
    setEventHandlers();
@@ -58,20 +76,15 @@ function onSocketConnection(client) {
    client.on('chat', function (data) {
    
       // default value of the name of the sender.
-      var sender = 'unregistered';
+      var sender = data.name;
       
-      // get the name of the sender
-      client.get('nickname', function (err, name) {
-         console.log('Chat message by ', name);
-         console.log('error ', err);
-         sender = name;
-      });   
+      util.log(sender);
 
       // broadcast data recieved from the sender
       // to others who are connected, but not 
       // from the original sender.
       client.broadcast.emit('chat', {
-         msg : data, 
+         msg : data.message, 
          msgr : sender
       });
    });
@@ -132,13 +145,16 @@ function onNewPlayer(data) {
    var newPlayer = new Player(data.x, data.y,data.state, data.type);
    newPlayer.id = this.id;
 
+   socket.set('nickname', data.name); 
+
    // Broadcast new player to connected socket clients
    this.broadcast.emit("new player", 
 							  {id: newPlayer.id, 
 								x: newPlayer.getX(), 
 								y: newPlayer.getY(),
 								state: newPlayer.getState(),
-								type: newPlayer.getType()
+								type: newPlayer.getType(),
+                        name: newPlayer.getName()
 							  });
 
    // Send existing players to the new player
@@ -150,7 +166,8 @@ function onNewPlayer(data) {
 					  x: existingPlayer.getX(), 
 					  y: existingPlayer.getY(),
 					  state: existingPlayer.getState(),
-					  type: existingPlayer.getType()
+					  type: existingPlayer.getType(),
+                 name: existingPlayer.getName()
 					 });
    }
       
@@ -168,29 +185,16 @@ function onNewPlayer(data) {
  //  this.emit("new enemy", {id: 3, x: 50, y: 400,state: 0});
 	var num, existingEnemy;
 	for (num = 0; num < 10; num++) {
-		var w = Math.floor(Math.random() * 1440);
-		var h = Math.floor(Math.random() * 470);
-		var newEnemy;
-		if (num == 4 || num == 8) {
-			newEnemy = new Enemy(w, h,0, -1, 1);
-		} else if (num == 6) {
-			newEnemy = new Enemy(w, h,0, 1, -1);
-		} else if (num == 9) {
-			newEnemy = new Enemy(w, h,0, -1, -1);
-		} else {
-			newEnemy = new Enemy(w, h,0, 1, 1);
-		}
-
-		newEnemy.id = num + 2;
+		
 		this.emit("new enemy", {
-			id: newEnemy.id, 
-			x: newEnemy.getX(), 
-			y: newEnemy.getY(),
-			state: newEnemy.getState(),
-			mx: newEnemy.getMx(),
-			my:newEnemy.getMy()
+			id: enemies[num].id, 
+			x: enemies[num].getX(), 
+			y: enemies[num].getY(),
+			state: enemies[num].getState(),
+			mx: enemies[num].getMx(),
+			my:enemies[num].getMy()
 		});
-		enemies.push(newEnemy);
+		
 		util.log("add tested enemy" + num);
 	}
 
@@ -272,4 +276,4 @@ function enemyById(id) {
    return false;
 }
 init();
-setInterval(onMoveEnemy,10);
+setInterval(onMoveEnemy,1000/60);

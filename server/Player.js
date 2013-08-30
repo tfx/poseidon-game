@@ -10,6 +10,8 @@ var Player = function(startX, startY,stateVal, typeShip) {
 	  exp,
 	  hp;
 
+	var name;
+
 	// Getters and setters
 	var getX = function() {
 		return x;
@@ -75,6 +77,14 @@ var Player = function(startX, startY,stateVal, typeShip) {
 		type = newType;
 	} 
 
+	var getName = function() {
+		return name;
+	}
+
+	var setName = function(newName) {
+		name = newName;
+	} 
+
 	// Define which variables and methods can be accessed
 	return {
 		getX: getX,
@@ -93,6 +103,8 @@ var Player = function(startX, startY,stateVal, typeShip) {
 		setHp: setHp,
 		getType: getType,
 		setType: setType,
+		getName: getName,
+		setName: setName,
 		id: id
 	}
 }

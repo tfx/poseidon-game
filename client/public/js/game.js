@@ -2,7 +2,7 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var score = Math.random();
 var music = AudioFX("audio/in_game.mp3");
-music.play();
+//music.play();
 var shot = AudioFX("audio/shot.mp3");
 
 var keys, localPlayer, remotePlayers,socket;
@@ -57,6 +57,8 @@ function init() {
 
    // Start listening for events
    setEventHandlers();
+
+
 }
 
 var setEventHandlers = function() {
@@ -87,10 +89,9 @@ var setEventHandlers = function() {
 
     socket.on('chat', function (data) {
            
-            // print data (jquery thing)
+            
             $("#txtAreaDisplay").val($("#txtAreaDisplay").val()+"\r\n" + data.msgr + ': ' + data.msg);
-             // we log this event for fun :D
-             $("p#log").html('got message: ' + data.msg);
+            
 
           });
 }
@@ -119,13 +120,24 @@ function onResize(e) {
 // Socket connected
 function onSocketConnected() {
    console.log("Connected to socket server");
+   var playerName = "";
+   while (playerName=="") {
+      playerName = prompt("enter player name:");      
+   }
+   localPlayer.setName(playerName);
 
    // Send local player data to the game server
    socket.emit("new player", 
 					{x: localPlayer.getX(), 
 					 y: localPlayer.getY(), 
 					 state: localPlayer.getState(), 
-					 type: localPlayer.getType()});
+					 type: localPlayer.getType(),
+                name: localPlayer.getName()                
+               });
+   
+
+   
+
 }
 
 // Socket disconnected
@@ -142,13 +154,13 @@ function onNewPlayer(data) {
    // Initialise the new player
 	switch(data.type) {
 	case 1:
-		newPlayer = new Player('black-sprite.png', 186, 186,2,data.x, data.y, 1);
+		newPlayer = new Player('black-sprite.png', 186, 186,3,data.x, data.y, 1);
 		break;
 	case 2:
-		newPlayer = new Player('red-sprite.png', 186, 186,2,data.x, data.y, 2);
+		newPlayer = new Player('red-sprite.png', 186, 186,3,data.x, data.y, 2);
 		break;
 	case 3:
-		newPlayer = new Player('green-sprite.png', 186, 186,2,data.x, data.y, 3);
+		newPlayer = new Player('green-sprite.png', 186, 186,3,data.x, data.y, 3);
 		break;
 	}
    newPlayer.id = data.id;
@@ -198,12 +210,12 @@ function onMoveEnemy (data) {
 	var moveEnemy = enemyById(data.id);
 
    if (!moveEnemy) {
-      console.log("Enemy not found: "+data.id);
+      //console.log("Enemy not found: ");
       return;
    }	else {
 	moveEnemy.setX(data.x);
 	moveEnemy.setY(data.y);
-		console.log("enemy found!!");
+		//console.log("enemy found!!");
 	}
 	
 }
@@ -296,6 +308,7 @@ function update(mod) {
          1000 );
       projectiles.push(projectile);
       localPlayer.projectileTimer = Date.now();
+      console.log("shoot");
    }
    updateProjectiles(mod);
 	// for (var key in projectiles) {
@@ -372,14 +385,34 @@ function render() {
 // Run
 function run() {
    update((Date.now() - time) / 1000);
+   //updateProjectiles((Date.now() - time) / 1000);
    render();
    time = Date.now();
 }
 
 var time = Date.now();
 init();
-setInterval(run, 10);
+//setInterval(run, 1000/60);
 //run();
+
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+
+// usage:
+// instead of setInterval(render, 16) ....
+
+(function animloop(){
+  requestAnimFrame(animloop);
+  run();
+})();
 
 function playerById(id) {
    
@@ -474,7 +507,8 @@ function addText(){
    else{
       isWritting = 0;
       isWritting = 1;
-      textInputPanel.style.display="block"     
+      textInputPanel.style.display="block"  ;
+      txtTextInput.focus();   
       txtTextInput.value="";
    }
 }
@@ -487,31 +521,27 @@ function addText(){
             btnSend.click(function(){      
                //alert("xxx");
                // send message on inputbox to server
-               socket.emit('chat', input.val() );
+               socket.emit('chat', {name: localPlayer.getName(),
+                  message: input.val() });
                
-               logs.val(logs.val()+"\r\n" + name + ': ' + input.val());
+               logs.val(logs.val()+"\r\n" + localPlayer.getName() + ': ' + input.val());
                
                // then we empty the text on the input box.
                input.val('');
             });
             
-            // ask for the name of the user, ask again if no name.
-            while (name == '') {
-               name = prompt("What's your name?","");
-            }
-            
-            // send the name to the server, and the server's 
-            // register wait will recieve this.
-            socket.emit('register', name );
+           
+
+            music.play();
          });
 
          // listen for chat event and recieve data
 
          function sendMessageToServer(){      
                // send message on inputbox to server
-               socket.emit('chat', $("#txtTextArea").val() );
+               socket.emit('chat', {name: localPlayer.getName(),message: $("#txtTextArea").val() });
                
-               $("#txtAreaDisplay").val( $("#txtAreaDisplay").val()+"\r\n" + name + ': ' + $("#txtTextArea").val());
+               $("#txtAreaDisplay").val( $("#txtAreaDisplay").val()+"\r\n" + localPlayer.getName() + ': ' + $("#txtTextArea").val());
                
                // then we empty the text on the input box.
                $("#txtTextArea").val('');
